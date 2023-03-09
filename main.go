@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"go-2fa-app/controllers"
 	"go-2fa-app/models"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -24,9 +26,23 @@ var (
 )
 
 func init() {
+	envErr := godotenv.Load()
+
+	if envErr != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	dbHost := os.Getenv("DBHOST")
+	dbUser := os.Getenv("DBUSER")
+	dbPass := os.Getenv("DBPASSWD")
+	dbName := os.Getenv("DBNAME")
+	dbPort := os.Getenv("DBPORT")
+	dbSSLMode := os.Getenv("SSLMODE")
+	dbTimeZone := os.Getenv("TIMEZONE")
+
 	var err error
 
-	dsn := "host=localhost user=postgres password=user@postgres dbname=g2fa port=5432 sslmode=disable TimeZone=Asia/Kolkata"
+	dsn := "host=" + dbHost + " user=" + dbUser + " password=" + dbPass + " dbname=" + dbName + " port=" + dbPort + " sslmode=" + dbSSLMode + " TimeZone=" + dbTimeZone
 
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	DB.AutoMigrate(&models.User{})
@@ -44,14 +60,16 @@ func init() {
 
 func main() {
 	corsConfig := cors.DefaultConfig()
-	corsConfig.AllowOrigins = []string{"http://localhost:3000"}
+	corsConfig.AllowOrigins = []string{"http://localhost:3000"} // for frontend
 	corsConfig.AllowCredentials = true
 
 	server.Use(cors.New(corsConfig))
 
 	router := server.Group("/api")
-	router.GET("/healthchecker", func(ctx *gin.Context) {
-		message := "Welcome to Two-Factor Authentication with Golang"
+	router.GET("/issuecheck", func(ctx *gin.Context) {
+
+		message := "API is working properly!"
+
 		ctx.JSON(
 			http.StatusOK, gin.H{
 				"status":  "success",

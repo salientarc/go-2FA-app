@@ -2,13 +2,23 @@ package controllers
 
 import (
 	"go-2fa-app/models"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pquerna/otp/totp"
+
+	"github.com/joho/godotenv"
 )
 
 func (ac *AuthController) GenerateOTP(ctx *gin.Context) {
+	envErr := godotenv.Load()
+
+	if envErr != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	var payload *models.OTPInput
 
 	if err := ctx.ShouldBindJSON(&payload); err != nil {
@@ -20,9 +30,12 @@ func (ac *AuthController) GenerateOTP(ctx *gin.Context) {
 		return
 	}
 
+	issuerDomain := os.Getenv("ISSUERDOMAIN")
+	issuerAccountName := os.Getenv("ACCOUNTNAME")
+
 	key, err := totp.Generate(totp.GenerateOpts{
-		Issuer:      "domain.com",
-		AccountName: "admin@domain.com",
+		Issuer:      issuerDomain,
+		AccountName: issuerAccountName,
 		SecretSize:  15,
 	})
 
@@ -52,5 +65,6 @@ func (ac *AuthController) GenerateOTP(ctx *gin.Context) {
 		"base32":      key.Secret(),
 		"otpauth_url": key.URL(),
 	}
+
 	ctx.JSON(http.StatusOK, otpResponse)
 }

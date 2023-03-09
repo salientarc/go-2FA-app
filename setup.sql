@@ -1,3 +1,5 @@
+CREATE DATABASE g2fa;
+
 CREATE TABLE UserInfo (
         Id INT PRIMARY KEY NOT NULL,
         Name TEXT NOT NULL,
