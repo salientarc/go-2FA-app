@@ -22,7 +22,7 @@ Use `setup.sql` to create database
 ```sh
 cd go-2fa-app
 
-postgres -U postgres
+psql -U postgres
 
 \i setup.sql # in postgresql shell
 ```
